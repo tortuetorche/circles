@@ -5,9 +5,7 @@
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
  *
- * @author Maxence Lange <maxence@pontapreta.net>
- * @author Vinicius Cubas Brand <vinicius@eita.org.br>
- *
+ * @author Maxence Lange <maxence@artificial-owl.com>
  * @copyright 2017
  * @license GNU AGPL version 3 or any later version
  *
@@ -26,15 +24,11 @@
  *
  */
 
+namespace OCA\Circles\Exceptions;
 
-use OCA\Circles\AppInfo\Application;
 
+class JsonException extends \Exception {
 
-require_once __DIR__ . '/autoload.php';
+}
 
-$app = \OC::$server->query(Application::class);
-
-$app->registerNavigation();
-$app->registerFilesNavigation();
-$app->registerFilesPlugin();
 

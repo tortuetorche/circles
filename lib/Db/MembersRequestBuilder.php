@@ -81,9 +81,8 @@ class MembersRequestBuilder extends CoreRequestBuilder {
 
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
 		$qb->select(
-			'm.user_id', 'm.user_type', 'm.circle_id', 'm.level', 'm.status', 'm.note', 'm.contact_id',
-			'member_id',
-			'm.contact_meta', 'm.joined'
+			'm.user_id', 'm.instance', 'm.user_type', 'm.circle_id', 'm.level', 'm.status', 'm.note',
+			'm.contact_id', 'm.member_id', 'm.contact_meta', 'm.joined'
 		)
 		   ->from(self::TABLE_MEMBERS, 'm')
 		   ->orderBy('m.joined');
@@ -163,6 +162,7 @@ class MembersRequestBuilder extends CoreRequestBuilder {
 			   $expr->andX(
 				   $expr->eq('circle_id', $qb->createNamedParameter($circleId)),
 				   $expr->eq('user_id', $qb->createNamedParameter($member->getUserId())),
+				   $expr->eq('instance', $qb->createNamedParameter($member->getInstance())),
 				   $expr->eq('user_type', $qb->createNamedParameter($member->getType()))
 			   )
 		   );
@@ -218,6 +218,7 @@ class MembersRequestBuilder extends CoreRequestBuilder {
 		}
 
 		$member->setLevel($data['level']);
+		$member->setInstance($data['instance']);
 		$member->setStatus($data['status']);
 		$member->setJoined($this->timezoneService->convertTimeForCurrentUser($data['joined']));
 

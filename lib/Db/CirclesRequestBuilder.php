@@ -92,6 +92,7 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 	/**
 	 * @param IQueryBuilder $qb
 	 * @param $userId
+	 * @param string $instanceId
 	 * @param string $circleUniqueId
 	 * @param $type
 	 * @param $name
@@ -100,7 +101,8 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 	 * @throws ConfigNoCircleAvailableException
 	 */
 	protected function limitRegardingCircleType(
-		IQueryBuilder &$qb, $userId, $circleUniqueId, $type, $name, $forceAll = false
+		IQueryBuilder &$qb, string $userId, string $circleUniqueId, int $type,
+		string $name, bool $forceAll = false
 	) {
 		$orTypes = $this->generateLimit($qb, $circleUniqueId, $userId, $type, $name, $forceAll);
 		if (sizeof($orTypes) === 0) {
@@ -160,6 +162,7 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 
 		$andX = $expr->andX();
 		$andX->add($expr->eq('c.type', $qb->createNamedParameter(Circle::CIRCLES_PERSONAL)));
+		$andX->add($expr->eq('o.instance', $qb->createNamedParameter('')));
 
 		if (!$forceAll) {
 			$andX->add($expr->eq('o.user_id', $qb->createNamedParameter((string)$userId)));
@@ -252,8 +255,9 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 	 *
 	 * @param IQueryBuilder $qb
 	 * @param string $userId
+	 * @param string $instanceId
 	 */
-	public function leftJoinUserIdAsViewer(IQueryBuilder &$qb, $userId) {
+	public function leftJoinUserIdAsViewer(IQueryBuilder &$qb, string $userId, string $instanceId) {
 
 		if ($qb->getType() !== QueryBuilder::SELECT) {
 			return;
@@ -264,6 +268,7 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
 		$qb->selectAlias('u.user_id', 'viewer_userid')
+		   ->selectAlias('u.instance', 'viewer_instance')
 		   ->selectAlias('u.status', 'viewer_status')
 		   ->selectAlias('u.level', 'viewer_level')
 		   ->leftJoin(
@@ -277,6 +282,7 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 					   )
 				   ),
 				   $expr->eq('u.user_id', $qb->createNamedParameter($userId)),
+				   $expr->eq('u.instance', $qb->createNamedParameter($instanceId)),
 				   $expr->eq('u.user_type', $qb->createNamedParameter(Member::TYPE_USER))
 			   )
 		   );
@@ -299,6 +305,7 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
 		$qb->selectAlias('o.user_id', 'owner_userid')
+		   ->selectAlias('o.instance', 'owner_instance')
 		   ->selectAlias('o.status', 'owner_status')
 		   ->selectAlias('o.level', 'owner_level')
 		   ->leftJoin(
@@ -420,6 +427,7 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 		if (key_exists('viewer_level', $data)) {
 			$user = new Member($data['viewer_userid'], Member::TYPE_USER, $circle->getUniqueId());
 			$user->setStatus($data['viewer_status']);
+			$user->setInstance($data['viewer_instance']);
 			$user->setLevel($data['viewer_level']);
 			$circle->setViewer($user);
 		}
@@ -427,6 +435,7 @@ class CirclesRequestBuilder extends CoreRequestBuilder {
 		if (key_exists('owner_level', $data)) {
 			$owner = new Member($data['owner_userid'], Member::TYPE_USER, $circle->getUniqueId());
 			$owner->setStatus($data['owner_status']);
+			$owner->setInstance($data['owner_instance']);
 			$owner->setLevel($data['owner_level']);
 			$circle->setOwner($owner);
 		}

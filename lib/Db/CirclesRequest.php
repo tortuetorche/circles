@@ -63,9 +63,7 @@ class CirclesRequest extends CirclesRequestBuilder {
 			throw new CircleDoesNotExistException($this->l10n->t('Circle not found'));
 		}
 
-		$entry = $this->parseCirclesSelectSql($data);
-
-		return $entry;
+		return $this->parseCirclesSelectSql($data);
 	}
 
 
@@ -130,6 +128,7 @@ class CirclesRequest extends CirclesRequestBuilder {
 
 	/**
 	 * @param string $userId
+	 * @param string $instanceId
 	 * @param int $type
 	 * @param string $name
 	 * @param int $level
@@ -138,13 +137,15 @@ class CirclesRequest extends CirclesRequestBuilder {
 	 * @return Circle[]
 	 * @throws ConfigNoCircleAvailableException
 	 */
-	public function getCircles($userId, $type = 0, $name = '', $level = 0, $forceAll = false) {
+	public function getCircles(
+		string $userId, int $type = 0, string $name = '', int $level = 0, bool $forceAll = false
+	) {
 		if ($type === 0) {
 			$type = Circle::CIRCLES_ALL;
 		}
 
 		$qb = $this->getCirclesSelectSql();
-		$this->leftJoinUserIdAsViewer($qb, $userId);
+		$this->leftJoinUserIdAsViewer($qb, $userId, '');
 		$this->leftJoinOwner($qb);
 		$this->leftJoinNCGroupAndUser($qb, $userId, '`c`.`unique_id`');
 
@@ -170,20 +171,25 @@ class CirclesRequest extends CirclesRequestBuilder {
 	 *
 	 * @param string $circleUniqueId
 	 * @param string $viewerId
+	 * @param string $instanceId
 	 * @param bool $forceAll
 	 *
 	 * @return Circle
 	 * @throws CircleDoesNotExistException
 	 * @throws ConfigNoCircleAvailableException
 	 */
-	public function getCircle($circleUniqueId, $viewerId, $forceAll = false) {
+	public function getCircle(
+		string $circleUniqueId, string $viewerId, string $instanceId = '', bool $forceAll = false
+	) {
 		$qb = $this->getCirclesSelectSql();
 
 		$this->limitToShortenUniqueId($qb, $circleUniqueId, Circle::SHORT_UNIQUE_ID_LENGTH);
 
-		$this->leftJoinUserIdAsViewer($qb, $viewerId);
+		$this->leftJoinUserIdAsViewer($qb, $viewerId, $instanceId);
 		$this->leftJoinOwner($qb);
-		$this->leftJoinNCGroupAndUser($qb, $viewerId, '`c`.`unique_id`');
+		if ($instanceId === '') {
+			$this->leftJoinNCGroupAndUser($qb, $viewerId, '`c`.`unique_id`');
+		}
 
 		$this->limitRegardingCircleType($qb, $viewerId, $circleUniqueId, Circle::CIRCLES_ALL, '', $forceAll);
 
@@ -196,9 +202,11 @@ class CirclesRequest extends CirclesRequestBuilder {
 		}
 
 		$circle = $this->parseCirclesSelectSql($data);
-		$circle->setGroupViewer(
-			$this->membersRequest->forceGetHigherLevelGroupFromUser($circleUniqueId, $viewerId)
-		);
+		if ($instanceId === '') {
+			$circle->setGroupViewer(
+				$this->membersRequest->forceGetHigherLevelGroupFromUser($circleUniqueId, $viewerId)
+			);
+		}
 
 		return $circle;
 	}
@@ -215,15 +223,13 @@ class CirclesRequest extends CirclesRequestBuilder {
 	 *
 	 * @throws CircleAlreadyExistsException
 	 */
-	public function createCircle(Circle &$circle, $userId) {
-
-		if (!$this->isCircleUnique($circle, $userId)) {
+	public function createCircle(Circle &$circle, $userId = '') {
+		if ($userId !== '' && !$this->isCircleUnique($circle, $userId)) {
 			throw new CircleAlreadyExistsException(
 				$this->l10n->t('A circle with that name exists')
 			);
 		}
 
-		$circle->generateUniqueId();
 		$qb = $this->getCirclesInsertSql();
 		$qb->setValue('unique_id', $qb->createNamedParameter($circle->getUniqueId(true)))
 		   ->setValue('name', $qb->createNamedParameter($circle->getName()))
@@ -234,12 +240,14 @@ class CirclesRequest extends CirclesRequestBuilder {
 		   ->setValue('type', $qb->createNamedParameter($circle->getType()));
 		$qb->execute();
 
-		$owner = new Member($userId, Member::TYPE_USER);
-		$owner->setCircleId($circle->getUniqueId())
-			  ->setLevel(Member::LEVEL_OWNER)
-			  ->setStatus(Member::STATUS_MEMBER);
-		$circle->setOwner($owner)
-			   ->setViewer($owner);
+//		if ($userId !== '') {
+//			$owner = new Member($userId, Member::TYPE_USER);
+//			$owner->setCircleId($circle->getUniqueId())
+//				  ->setLevel(Member::LEVEL_OWNER)
+//				  ->setStatus(Member::STATUS_MEMBER);
+//			$circle->setOwner($owner)
+//				   ->setViewer($owner);
+//		}
 	}
 
 
@@ -263,8 +271,7 @@ class CirclesRequest extends CirclesRequestBuilder {
 	 *
 	 * @return bool
 	 */
-	private function isCircleUnique(Circle $circle, $userId) {
-
+	private function isCircleUnique(Circle $circle, $userId = '') {
 		if ($circle->getType() === Circle::CIRCLES_PERSONAL) {
 			return $this->isPersonalCircleUnique($circle, $userId);
 		}
@@ -293,7 +300,10 @@ class CirclesRequest extends CirclesRequestBuilder {
 	 *
 	 * @return bool
 	 */
-	private function isPersonalCircleUnique(Circle $circle, $userId) {
+	private function isPersonalCircleUnique(Circle $circle, $userId = '') {
+		if ($userId === '') {
+			return true;
+		}
 
 		$list = $this->getCircles(
 			$userId, Circle::CIRCLES_PERSONAL, $circle->getName(),
@@ -317,7 +327,7 @@ class CirclesRequest extends CirclesRequestBuilder {
 	 *
 	 * @throws CircleAlreadyExistsException
 	 */
-	public function updateCircle(Circle $circle, $userId) {
+	public function updateCircle(Circle $circle, $userId = '') {
 
 		if (!$this->isCircleUnique($circle, $userId)) {
 			throw new CircleAlreadyExistsException(

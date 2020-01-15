@@ -30,6 +30,7 @@ class CoreRequestBuilder {
 	const TABLE_SHARES = 'circles_shares';
 	const TABLE_LINKS = 'circles_links';
 	const TABLE_TOKENS = 'circles_tokens';
+	const TABLE_GSEVENTS = 'circles_gsevents';
 
 	const NC_TABLE_GROUP_USER = 'group_user';
 
@@ -161,6 +162,17 @@ class CoreRequestBuilder {
 	 */
 	protected function limitToUserType(IQueryBuilder &$qb, $type) {
 		$this->limitToDBField($qb, 'user_type', $type);
+	}
+
+
+	/**
+	 * Limit the request to the Instance.
+	 *
+	 * @param IQueryBuilder $qb
+	 * @param string $instance
+	 */
+	protected function limitToInstance(IQueryBuilder &$qb, string $instance) {
+		$this->limitToDBField($qb, 'instance', $instance);
 	}
 
 
