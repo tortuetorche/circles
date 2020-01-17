@@ -126,9 +126,6 @@ class GSUpstreamService {
 	public function newEvent(GSEvent $event) {
 		try {
 			$gs = $this->globalScaleService->getGlobalScaleEvent($event);
-//		if (!$this->configService->getGSStatus(ConfigService::GS_ENABLED)) {
-//			return true;
-//		}
 
 			$this->fillEvent($event);
 			if ($this->isLocalEvent($event)) {
@@ -400,7 +397,7 @@ class GSUpstreamService {
 		// This should be done by checking admin rights. if no admin rights, let's assume that circle should be removed.
 		if (!$notFound && $foundWithNoOwner) {
 			// TODO: assign a new owner and check that when changing owner, we do check that the destination instance is updated FOR SURE!
-			 return true;
+			return true;
 		}
 
 		// some instances returned notFound, some returned circle with no owner. let's assume the circle is deprecated.

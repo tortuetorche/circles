@@ -140,6 +140,7 @@ class SharingFrameService {
 
 			$this->initiateShare($circle->getUniqueId(), $frame->getUniqueId());
 		} catch (Exception $e) {
+			$this->miscService->log('Exception while createFrame: ' . $e->getMessage(), 1);
 			throw $e;
 		}
 	}

@@ -81,20 +81,12 @@ class MemberAdd extends AGlobalScaleEvent {
 		);
 
 		$circle = $event->getCircle();
-//		$eventViewer = $event->getViewer();
-//		$this->cleanMember($eventViewer);
-
-//		$circle =
-//			$this->circlesRequest->getCircle(
-//				$eventCircle->getUniqueId(), $eventViewer->getUserId(), $eventViewer->getInstance()
-//			);
 		$circle->getHigherViewer()
 			   ->hasToBeModerator();
 
 		$member = $this->membersRequest->getFreshNewMember(
 			$circle->getUniqueId(), $ident, $eventMember->getType(), $eventMember->getInstance()
 		);
-//		$this->membersRequest->createMember($member);
 		$member->hasToBeInviteAble();
 
 		$this->circlesService->checkThatCircleIsNotFull($circle);
@@ -114,7 +106,6 @@ class MemberAdd extends AGlobalScaleEvent {
 	public function manage(GSEvent $event): void {
 		$circle = $event->getCircle();
 		$member = $event->getMember();
-$this->miscService->log('add member; ' . json_encode($member));
 		if ($member->getJoined() === '') {
 			$this->membersRequest->createMember($member);
 		} else {
