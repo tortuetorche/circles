@@ -88,7 +88,7 @@ class GlobalScaleController extends BaseController {
 	 */
 	public function asyncBroadcast(string $token) {
 		try {
-			$wrapper = $this->gsUpstreamService->getEventByToken($token);
+			$wrappers = $this->gsUpstreamService->getEventsByToken($token);
 		} catch (Exception $e) {
 			$this->miscService->log(
 				'exception during async: ' . ['token' => $token, 'error' => $e->getMessage()]
@@ -97,12 +97,14 @@ class GlobalScaleController extends BaseController {
 		}
 
 		$this->async();
-		try {
-			$this->gsUpstreamService->broadcastEvent(
-				$wrapper->getEvent(), $this->request->getServerProtocol()
-			);
-		} catch (GSStatusException $e) {
+		foreach ($wrappers as $wrapper) {
+			try {
+				$this->gsUpstreamService->broadcastWrapper($wrapper, $this->request->getServerProtocol());
+			} catch (GSStatusException $e) {
+			}
 		}
+
+		$this->gsUpstreamService->manageResults($token);
 
 		exit();
 	}
@@ -127,7 +129,7 @@ class GlobalScaleController extends BaseController {
 
 			$this->gsDownstreamService->onNewEvent($event);
 
-			return $this->success([]);
+			return $this->success(['result' => $event->getResult()]);
 		} catch (Exception $e) {
 			return $this->fail(['data' => $data, 'error' => $e->getMessage()]);
 		}

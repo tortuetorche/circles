@@ -86,5 +86,11 @@ class CircleStatus extends AGlobalScaleEvent {
 			  ->sInt('status', $status);
 	}
 
+
+	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+	}
 }
 

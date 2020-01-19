@@ -47,11 +47,26 @@ class GSWrapper implements JsonSerializable {
 	use TArrayTools;
 
 
+	const STATUS_INIT = 0;
+	const STATUS_FAILED = 1;
+	const STATUS_DONE = 8;
+	const STATUS_OVER = 9;
+
+
 	/** @var string */
 	private $token = '';
 
 	/** @var GSEvent */
 	private $event;
+
+	/** @var string */
+	private $instance = '';
+
+	/** @var int */
+	private $severity = GSEvent::SEVERITY_LOW;
+
+	/** @var int */
+	private $status = 0;
 
 	/** @var int */
 	private $creation;
@@ -107,6 +122,63 @@ class GSWrapper implements JsonSerializable {
 
 
 	/**
+	 * @return string
+	 */
+	public function getInstance(): string {
+		return $this->instance;
+	}
+
+	/**
+	 * @param string $instance
+	 *
+	 * @return GSWrapper
+	 */
+	public function setInstance(string $instance): self {
+		$this->instance = $instance;
+
+		return $this;
+	}
+
+
+	/**
+	 * @return int
+	 */
+	public function getSeverity(): int {
+		return $this->severity;
+	}
+
+	/**
+	 * @param int $severity
+	 *
+	 * @return GSWrapper
+	 */
+	public function setSeverity(int $severity): self {
+		$this->severity = $severity;
+
+		return $this;
+	}
+
+
+	/**
+	 * @return int
+	 */
+	public function getStatus(): int {
+		return $this->status;
+	}
+
+	/**
+	 * @param int $status
+	 *
+	 * @return GSWrapper
+	 */
+	public function setStatus(int $status): self {
+		$this->status = $status;
+
+		return $this;
+	}
+
+
+	/**
 	 * @return int
 	 */
 	public function getCreation(): int {
@@ -133,7 +205,10 @@ class GSWrapper implements JsonSerializable {
 	 * @throws ModelException
 	 */
 	public function import(array $data): self {
-		$this->setToken($this->get('id', $data));
+		$this->setToken($this->get('token', $data));
+		$this->setInstance($this->get('instance', $data));
+		$this->setSeverity($this->getInt('severity', $data, GSEvent::SEVERITY_LOW));
+		$this->setStatus($this->getInt('status', $data, GSWrapper::STATUS_INIT));
 
 		$event = new GSEvent();
 		$event->importFromJson($this->get('event', $data));
@@ -153,6 +228,8 @@ class GSWrapper implements JsonSerializable {
 		$arr = [
 			'id'       => $this->getToken(),
 			'event'    => $this->getEvent(),
+			'severity' => $this->getSeverity(),
+			'status'   => $this->getStatus(),
 			'creation' => $this->getCreation()
 		];
 

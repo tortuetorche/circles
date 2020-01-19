@@ -108,6 +108,13 @@ class MemberLevel extends AGlobalScaleEvent {
 
 
 	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+	}
+
+
+	/**
 	 * @param Circle $circle
 	 * @param Member $member
 	 * @param $level

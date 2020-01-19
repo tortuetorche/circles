@@ -59,12 +59,9 @@ class GSEventsRequestBuilder extends CoreRequestBuilder {
 	/**
 	 * Base of the Sql Update request for Groups
 	 *
-	 * @param int $circleId
-	 * @param string $groupId
-	 *
 	 * @return IQueryBuilder
 	 */
-	protected function getGSEventsUpdateSql($circleId, $groupId) {
+	protected function getGSEventsUpdateSql() {
 		$qb = $this->dbConnection->getQueryBuilder();
 		$qb->update(self::TABLE_GSEVENTS);
 
@@ -79,7 +76,7 @@ class GSEventsRequestBuilder extends CoreRequestBuilder {
 		$qb = $this->dbConnection->getQueryBuilder();
 
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
-		$qb->select('gs.token', 'gs.event', 'gs.creation')
+		$qb->select('gs.token', 'gs.event', 'gs.instance', 'gs.severity', 'gs.status', 'gs.creation')
 		   ->from(self::TABLE_GSEVENTS, 'gs');
 
 		$this->default_select_alias = 'gs';

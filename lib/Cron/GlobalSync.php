@@ -99,6 +99,9 @@ class GlobalSync extends TimedJob {
 
 		$this->syncCircles();
 		$this->removeDeprecatedCircles();
+
+		$this->syncEvents();
+		$this->removeDeprecatedEvents();
 	}
 
 
@@ -159,4 +162,17 @@ class GlobalSync extends TimedJob {
 		}
 	}
 
+
+	/**
+	 *
+	 */
+	private function syncEvents(): void {
+
+	}
+
+	private function removeDeprecatedEvents(): void {
+		$this->gsUpstreamService->deprecatedEvents();
+	}
+
 }
+

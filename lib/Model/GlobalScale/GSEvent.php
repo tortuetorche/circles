@@ -47,6 +47,9 @@ use OCA\Circles\Model\Member;
 class GSEvent implements JsonSerializable {
 
 
+	const SEVERITY_LOW = 1;
+	const SEVERITY_HIGH = 3;
+
 	const GLOBAL_SYNC = 'GlobalScale\GlobalSync';
 	const CIRCLE_STATUS = 'GlobalScale\CircleStatus';
 
@@ -78,7 +81,14 @@ class GSEvent implements JsonSerializable {
 	/** @var Member */
 	private $member;
 
+	/** @var SimpleDataStore */
 	private $data;
+
+	/** @var int */
+	private $severity = self::SEVERITY_LOW;
+
+	/** @var SimpleDataStore */
+	private $result;
 
 	/** @var string */
 	private $key = '';
@@ -97,6 +107,7 @@ class GSEvent implements JsonSerializable {
 		$this->type = $type;
 		$this->local = $local;
 		$this->data = new SimpleDataStore();
+		$this->result = new SimpleDataStore();
 	}
 
 
@@ -244,6 +255,44 @@ class GSEvent implements JsonSerializable {
 
 
 	/**
+	 * @return int
+	 */
+	public function getSeverity(): int {
+		return $this->severity;
+	}
+
+	/**
+	 * @param int $severity
+	 *
+	 * @return GSEvent
+	 */
+	public function setSeverity(int $severity): self {
+		$this->severity = $severity;
+
+		return $this;
+	}
+
+
+	/**
+	 * @return SimpleDataStore
+	 */
+	public function getResult(): SimpleDataStore {
+		return $this->result;
+	}
+
+	/**
+	 * @param SimpleDataStore $result
+	 *
+	 * @return GSEvent
+	 */
+	public function setResult(SimpleDataStore $result): self {
+		$this->result = $result;
+
+		return $this;
+	}
+
+
+	/**
 	 * @return string
 	 */
 	public function getKey(): string {
@@ -300,9 +349,11 @@ class GSEvent implements JsonSerializable {
 	 */
 	public function import(array $data): self {
 		$this->setType($this->get('type', $data));
-		$this->setKey($this->get('key', $data));
-		$this->setSource($this->get('source', $data));
+		$this->setSeverity($this->getInt('severity', $data));
 		$this->setData(new SimpleDataStore($this->getArray('data', $data)));
+		$this->setResult(new SimpleDataStore($this->getArray('result', $data)));
+		$this->setSource($this->get('source', $data));
+		$this->setKey($this->get('key', $data));
 
 		if (array_key_exists('circle', $data)) {
 			$this->setCircle(Circle::fromArray($data['circle']));
@@ -325,10 +376,12 @@ class GSEvent implements JsonSerializable {
 	 */
 	function jsonSerialize(): array {
 		$arr = [
-			'type'   => $this->getType(),
-			'key'    => $this->getKey(),
-			'data'   => $this->getData(),
-			'source' => $this->getSource()
+			'type'     => $this->getType(),
+			'severity' => $this->getSeverity(),
+			'data'     => $this->getData(),
+			'result'   => $this->getResult(),
+			'key'      => $this->getKey(),
+			'source'   => $this->getSource()
 		];
 
 		if ($this->hasCircle()) {

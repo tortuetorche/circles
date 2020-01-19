@@ -28,15 +28,9 @@
 namespace OCA\Circles\Db;
 
 
-use daita\MySmallPhpTools\Traits\TStringTools;
-use Exception;
 use OCA\Circles\Exceptions\JsonException;
 use OCA\Circles\Exceptions\ModelException;
-use OCA\Circles\Exceptions\TokenDoesNotExistException;
-use OCA\Circles\Model\GlobalScale\GSEvent;
 use OCA\Circles\Model\GlobalScale\GSWrapper;
-use OCA\Circles\Model\Member;
-use OCA\Circles\Model\SharesToken;
 
 
 /**
@@ -47,24 +41,18 @@ use OCA\Circles\Model\SharesToken;
 class GSEventsRequest extends GSEventsRequestBuilder {
 
 
-	use TStringTools;
-
-
 	/**
-	 * @param GSEvent $event
-	 * @param array $instances
+	 * @param GSWrapper $wrapper
 	 *
 	 * @return GSWrapper
 	 */
-	public function create(GSevent $event): GSWrapper {
-		$wrapper = new GSWrapper();
-		$wrapper->setToken($this->uuid());
-		$wrapper->setEvent($event);
-		$wrapper->setCreation(time());
-
+	public function create(GSWrapper $wrapper): GSWrapper {
 		$qb = $this->getGSEventsInsertSql();
 		$qb->setValue('token', $qb->createNamedParameter($wrapper->getToken()))
 		   ->setValue('event', $qb->createNamedParameter(json_encode($wrapper->getEvent())))
+		   ->setValue('instance', $qb->createNamedParameter($wrapper->getInstance()))
+		   ->setValue('severity', $qb->createNamedParameter($wrapper->getSeverity()))
+		   ->setValue('status', $qb->createNamedParameter($wrapper->getStatus()))
 		   ->setValue('creation', $qb->createNamedParameter($wrapper->getCreation()));
 
 		$qb->execute();
@@ -72,30 +60,41 @@ class GSEventsRequest extends GSEventsRequestBuilder {
 		return $wrapper;
 	}
 
+	/**
+	 * @param GSWrapper $wrapper
+	 */
+	public function update(GSWrapper $wrapper): void {
+		$qb = $this->getGSEventsUpdateSql();
+		$qb->set('event', $qb->createNamedParameter(json_encode($wrapper->getEvent())))
+		   ->set('status', $qb->createNamedParameter($wrapper->getStatus()));
+
+		$this->limitToInstance($qb, $wrapper->getInstance());
+		$this->limitToToken($qb, $wrapper->getToken());
+
+		$qb->execute();
+	}
 
 
 	/**
 	 * @param string $token
 	 *
-	 * @return GSWrapper
-	 * @throws TokenDoesNotExistException
+	 * @return GSWrapper[]
 	 * @throws JsonException
 	 * @throws ModelException
 	 */
-	public function getByToken(string $token): GSWrapper {
+	public function getByToken(string $token): array {
 		$qb = $this->getGSEventsSelectSql();
 		$this->limitToToken($qb, $token);
 
+		$wrappers = [];
 		$cursor = $qb->execute();
-		$data = $cursor->fetch();
-		$cursor->closeCursor();
-		if ($data === false) {
-			throw new TokenDoesNotExistException('Unknown share token');
+		while ($data = $cursor->fetch()) {
+			$wrappers[] = $this->parseGSeventsSelectSql($data);
 		}
+		$cursor->closeCursor();
 
-		return $this->parseGSEventsSelectSql($data);
+		return $wrappers;
 	}
-
 
 }
 

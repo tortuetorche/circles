@@ -145,6 +145,12 @@ abstract class AGlobalScaleEvent {
 
 
 	/**
+	 * @param GSEvent[] $events
+	 */
+	abstract public function result(array $events): void;
+
+
+	/**
 	 * @param GSEvent $event
 	 * @param bool $mustBeChecked
 	 *

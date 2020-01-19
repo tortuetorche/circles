@@ -82,6 +82,13 @@ class MemberRemove extends AGlobalScaleEvent {
 
 
 	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+	}
+
+
+	/**
 	 * @param GSEvent $event
 	 *
 	 * @throws MemberAlreadyExistsException

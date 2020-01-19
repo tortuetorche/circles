@@ -46,7 +46,6 @@ use OCA\Circles\Exceptions\GlobalScaleEventException;
 use OCA\Circles\Exceptions\GSStatusException;
 use OCA\Circles\Exceptions\JsonException;
 use OCA\Circles\Exceptions\ModelException;
-use OCA\Circles\Exceptions\TokenDoesNotExistException;
 use OCA\Circles\GlobalScale\CircleStatus;
 use OCA\Circles\Model\Circle;
 use OCA\Circles\Model\GlobalScale\GSEvent;
@@ -120,6 +119,7 @@ class GSUpstreamService {
 
 	/**
 	 * @param GSEvent $event
+	 * @param int $severity
 	 *
 	 * @throws Exception
 	 */
@@ -148,12 +148,40 @@ class GSUpstreamService {
 
 
 	/**
+	 * @param GSWrapper $wrapper
 	 * @param string $protocol
-	 * @param GSEvent $event
-	 *
-	 * @throws GSStatusException
 	 */
-	public function broadcastEvent(GSEvent $event, string $protocol = ''): void {
+	public function broadcastWrapper(GSWrapper $wrapper, string $protocol): void {
+		$status = GSWrapper::STATUS_FAILED;
+
+		try {
+			$this->broadcastEvent($wrapper->getEvent(), $wrapper->getInstance(), $protocol);
+			$status = GSWrapper::STATUS_DONE;
+		} catch (RequestContentException | RequestNetworkException | RequestResultSizeException | RequestServerException | RequestResultNotJsonException $e) {
+		}
+
+		if ($wrapper->getSeverity() === GSEvent::SEVERITY_HIGH) {
+			$wrapper->setStatus($status);
+		} else {
+			$wrapper->setStatus(GSWrapper::STATUS_OVER);
+		}
+
+		$this->gsEventsRequest->update($wrapper);
+	}
+
+
+	/**
+	 * @param GSEvent $event
+	 * @param string $instance
+	 * @param string $protocol
+	 *
+	 * @throws RequestContentException
+	 * @throws RequestNetworkException
+	 * @throws RequestResultNotJsonException
+	 * @throws RequestResultSizeException
+	 * @throws RequestServerException
+	 */
+	public function broadcastEvent(GSEvent $event, string $instance, string $protocol = ''): void {
 		$this->signEvent($event);
 
 		$path = $this->urlGenerator->linkToRoute('circles.GlobalScale.broadcast');
@@ -166,17 +194,10 @@ class GSUpstreamService {
 		$request->setProtocol($protocol);
 		$request->setDataSerialize($event);
 
-		foreach ($this->getInstances() as $instance) {
-			$request->setAddress($instance);
+		$request->setAddress($instance);
 
-			try {
-				$this->doRequest($request);
-			} catch
-			(RequestContentException | RequestNetworkException | RequestResultSizeException | RequestServerException $e) {
-				// TODO: queue request
-			}
-		}
-
+		$data = $this->retrieveJson($request);
+		$event->setResult(new SimpleDataStore($this->getArray('result', $data, [])));
 	}
 
 
@@ -223,40 +244,6 @@ class GSUpstreamService {
 		$event->setSource($this->configService->getLocalCloudId());
 	}
 
-	/**
-	 * @param bool $all
-	 *
-	 * @return array
-	 * @throws GSStatusException
-	 */
-	public function getInstances(bool $all = false): array {
-		/** @var string $lookup */
-		$lookup = $this->configService->getGSStatus(ConfigService::GS_LOOKUP);
-
-		$request = new Request('/instances', Request::TYPE_GET);
-		$request->setAddressFromUrl($lookup);
-
-		try {
-			$instances = $this->retrieveJson($request);
-		} catch (
-		RequestContentException |
-		RequestNetworkException |
-		RequestResultSizeException |
-		RequestServerException |
-		RequestResultNotJsonException $e
-		) {
-			$this->miscService->log('Issue while retrieving instances from lookup: ' . $e->getMessage());
-
-			return [];
-		}
-
-		if ($all) {
-			return $instances;
-		}
-
-		return array_diff($instances, $this->configService->getTrustedDomains());
-	}
-
 
 	/**
 	 * @param GSEvent $event
@@ -293,12 +280,11 @@ class GSUpstreamService {
 	/**
 	 * @param string $token
 	 *
-	 * @return GSWrapper
+	 * @return GSWrapper[]
 	 * @throws JsonException
 	 * @throws ModelException
-	 * @throws TokenDoesNotExistException
 	 */
-	public function getEventByToken(string $token): GSWrapper {
+	public function getEventsByToken(string $token): array {
 		return $this->gsEventsRequest->getByToken($token);
 	}
 
@@ -313,7 +299,12 @@ class GSUpstreamService {
 		$event->setSource($this->configService->getLocalCloudId());
 		$event->setData(new SimpleDataStore($circles));
 
-		$this->broadcastEvent($event);
+		foreach ($this->globalScaleService->getInstances() as $instance) {
+			try {
+				$this->broadcastEvent($event, $instance);
+			} catch (RequestContentException | RequestNetworkException | RequestResultSizeException | RequestServerException | RequestResultNotJsonException $e) {
+			}
+		}
 	}
 
 
@@ -341,7 +332,7 @@ class GSUpstreamService {
 		$requestIssue = false;
 		$notFound = false;
 		$foundWithNoOwner = false;
-		foreach ($this->getInstances() as $instance) {
+		foreach ($this->globalScaleService->getInstances() as $instance) {
 			$request->setAddress($instance);
 
 			try {
@@ -402,6 +393,46 @@ class GSUpstreamService {
 
 		// some instances returned notFound, some returned circle with no owner. let's assume the circle is deprecated.
 		return false;
+	}
+
+
+	/**
+	 * @param string $token
+	 */
+	public function manageResults(string $token): void {
+		try {
+			$wrappers = $this->gsEventsRequest->getByToken($token);
+		} catch (JsonException | ModelException $e) {
+			return;
+		}
+
+		$event = null;
+		$events = [];
+		foreach ($wrappers as $wrapper) {
+			if ($wrapper->getStatus() !== GSWrapper::STATUS_DONE) {
+				return;
+			}
+
+			$events[$wrapper->getInstance()] = $event = $wrapper->getEvent();
+		}
+
+		if ($event === null) {
+			return;
+		}
+
+		try {
+			$gs = $this->globalScaleService->getGlobalScaleEvent($event);
+			$gs->result($events);
+		} catch (GlobalScaleEventException $e) {
+		}
+	}
+
+
+	/**
+	 *
+	 */
+	public function deprecatedEvents(): void {
+
 	}
 
 }

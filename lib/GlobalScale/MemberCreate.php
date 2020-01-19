@@ -96,5 +96,12 @@ class MemberCreate extends AGlobalScaleEvent {
 		$this->eventsService->onMemberNew($event->getCircle(), $member);
 	}
 
+
+	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+	}
+
 }
 

@@ -30,6 +30,7 @@
 namespace OCA\Circles\GlobalScale;
 
 
+use daita\MySmallPhpTools\Model\SimpleDataStore;
 use OCA\Circles\Exceptions\CircleDoesNotExistException;
 use OCA\Circles\Exceptions\ConfigNoCircleAvailableException;
 use OCA\Circles\Exceptions\GlobalScaleDSyncException;
@@ -96,7 +97,21 @@ class MemberJoin extends AGlobalScaleEvent {
 			$this->membersRequest->updateMember($member);
 		}
 
+		$event->setResult(new SimpleDataStore(['oui' => 'ok']));
+
 		$this->eventsService->onMemberNew($circle, $member);
+	}
+
+
+	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+		$instances = array_keys($events);
+		foreach ($instances as $instance) {
+			$event = $events[$instance];
+			$this->miscService->log('---- ' . $instance . ' -- ' . json_encode($event->getResult()));
+		}
 	}
 
 }

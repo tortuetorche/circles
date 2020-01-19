@@ -78,5 +78,11 @@ class CircleCreate extends AGlobalScaleEvent {
 		$this->eventsService->onCircleCreation($circle);
 	}
 
+
+	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+	}
 }
 

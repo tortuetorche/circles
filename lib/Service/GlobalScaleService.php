@@ -32,10 +32,12 @@ namespace OCA\Circles\Service;
 
 use daita\MySmallPhpTools\Exceptions\RequestContentException;
 use daita\MySmallPhpTools\Exceptions\RequestNetworkException;
+use daita\MySmallPhpTools\Exceptions\RequestResultNotJsonException;
 use daita\MySmallPhpTools\Exceptions\RequestResultSizeException;
 use daita\MySmallPhpTools\Exceptions\RequestServerException;
 use daita\MySmallPhpTools\Model\Request;
 use daita\MySmallPhpTools\Traits\TRequest;
+use daita\MySmallPhpTools\Traits\TStringTools;
 use OC;
 use OCA\Circles\Db\GSEventsRequest;
 use OCA\Circles\Exceptions\GlobalScaleEventException;
@@ -43,6 +45,7 @@ use OCA\Circles\Exceptions\GSKeyException;
 use OCA\Circles\Exceptions\GSStatusException;
 use OCA\Circles\GlobalScale\AGlobalScaleEvent;
 use OCA\Circles\Model\GlobalScale\GSEvent;
+use OCA\Circles\Model\GlobalScale\GSWrapper;
 use OCP\AppFramework\QueryException;
 use OCP\IURLGenerator;
 
@@ -56,6 +59,7 @@ class GlobalScaleService {
 
 
 	use TRequest;
+	use TStringTools;
 
 
 	/** @var IURLGenerator */
@@ -102,7 +106,17 @@ class GlobalScaleService {
 			return;
 		}
 
-		$wrapper = $this->gsEventsRequest->create($event);
+		$wrapper = new GSWrapper();
+		$wrapper->setEvent($event);
+		$wrapper->setToken($this->uuid());
+		$wrapper->setCreation(time());
+		$wrapper->setSeverity($event->getSeverity());
+
+		foreach ($this->getInstances() as $instance) {
+			$wrapper->setInstance($instance);
+			$wrapper = $this->gsEventsRequest->create($wrapper);
+		}
+
 		$path = $this->urlGenerator->linkToRoute(
 			'circles.GlobalScale.asyncBroadcast', ['token' => $wrapper->getToken()]
 		);
@@ -167,6 +181,35 @@ class GlobalScaleService {
 	 */
 	public function checkEvent(GSEvent $event): void {
 		$this->checkKey($event->getKey());
+	}
+
+
+	/**
+	 * @param bool $all
+	 *
+	 * @return array
+	 * @throws GSStatusException
+	 */
+	public function getInstances(bool $all = false): array {
+		/** @var string $lookup */
+		$lookup = $this->configService->getGSStatus(ConfigService::GS_LOOKUP);
+
+		$request = new Request('/instances', Request::TYPE_GET);
+		$request->setAddressFromUrl($lookup);
+
+		try {
+			$instances = $this->retrieveJson($request);
+		} catch (RequestContentException | RequestNetworkException | RequestResultSizeException | RequestServerException | RequestResultNotJsonException $e) {
+			$this->miscService->log('Issue while retrieving instances from lookup: ' . $e->getMessage());
+
+			return [];
+		}
+
+		if ($all) {
+			return $instances;
+		}
+
+		return array_diff($instances, $this->configService->getTrustedDomains());
 	}
 
 }

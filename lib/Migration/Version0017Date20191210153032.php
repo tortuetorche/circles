@@ -84,12 +84,30 @@ class Version0017Date20191210153032 extends SimpleMigrationStep {
 				   ]
 		);
 		$table->addColumn(
+			'instance', 'string', [
+						  'length'  => 255,
+						  'notnull' => false
+					  ]
+		);
+		$table->addColumn(
+			'severity', 'integer', [
+						  'length'  => 3,
+						  'notnull' => false
+					  ]
+		);
+		$table->addColumn(
+			'status', 'integer', [
+						'length'  => 3,
+						'notnull' => false
+					]
+		);
+		$table->addColumn(
 			'creation', 'bigint', [
 						  'length'  => 14,
 						  'notnull' => false
 					  ]
 		);
-		$table->addUniqueIndex(['token']);
+		$table->addUniqueIndex(['token', 'instance']);
 
 		return $schema;
 	}

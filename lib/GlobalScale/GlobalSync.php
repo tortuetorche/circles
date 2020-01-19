@@ -74,6 +74,13 @@ class GlobalSync extends AGlobalScaleEvent {
 
 
 	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+	}
+
+
+	/**
 	 * @param Circle $circle
 	 * @param string $source
 	 */

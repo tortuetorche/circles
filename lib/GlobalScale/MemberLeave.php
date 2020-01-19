@@ -83,5 +83,12 @@ class MemberLeave extends AGlobalScaleEvent {
 //		$this->sharesRequest->removeSharesFromMember($member);
 	}
 
+
+	/**
+	 * @param GSEvent[] $events
+	 */
+	public function result(array $events): void {
+	}
+
 }
 
