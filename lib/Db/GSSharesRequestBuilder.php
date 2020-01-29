@@ -29,18 +29,16 @@
 namespace OCA\Circles\Db;
 
 
-use OCA\Circles\Exceptions\JsonException;
-use OCA\Circles\Exceptions\ModelException;
-use OCA\Circles\Model\GlobalScale\GSWrapper;
+use OCA\Circles\Model\GlobalScale\GSShare;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 
 
 /**
- * Class GSEventsRequestBuilder
+ * Class GSSharesRequestBuilder
  *
  * @package OCA\Circles\Db
  */
-class GSEventsRequestBuilder extends CoreRequestBuilder {
+class GSSharesRequestBuilder extends CoreRequestBuilder {
 
 
 	/**
@@ -48,9 +46,9 @@ class GSEventsRequestBuilder extends CoreRequestBuilder {
 	 *
 	 * @return IQueryBuilder
 	 */
-	protected function getGSEventsInsertSql() {
+	protected function getGSSharesInsertSql() {
 		$qb = $this->dbConnection->getQueryBuilder();
-		$qb->insert(self::TABLE_GSEVENTS);
+		$qb->insert(self::TABLE_GSSHARES);
 
 		return $qb;
 	}
@@ -61,9 +59,9 @@ class GSEventsRequestBuilder extends CoreRequestBuilder {
 	 *
 	 * @return IQueryBuilder
 	 */
-	protected function getGSEventsUpdateSql() {
+	protected function getGSSharesUpdateSql() {
 		$qb = $this->dbConnection->getQueryBuilder();
-		$qb->update(self::TABLE_GSEVENTS);
+		$qb->update(self::TABLE_GSSHARES);
 
 		return $qb;
 	}
@@ -72,14 +70,17 @@ class GSEventsRequestBuilder extends CoreRequestBuilder {
 	/**
 	 * @return IQueryBuilder
 	 */
-	protected function getGSEventsSelectSql() {
+	protected function getGSSharesSelectSql() {
 		$qb = $this->dbConnection->getQueryBuilder();
 
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
-		$qb->select('gse.token', 'gse.event', 'gse.instance', 'gse.severity', 'gse.status', 'gse.creation')
-		   ->from(self::TABLE_GSEVENTS, 'gse');
+		$qb->select(
+			'gsh.id', 'gsh.circle_unique_id', 'gsh.owner', 'gsh.instance', 'gsh.token', 'gsh.parent',
+			'gsh.mountpoint', 'gsh.mountpoint_hash'
+		)
+		   ->from(self::TABLE_GSSHARES, 'gsh');
 
-		$this->default_select_alias = 'gse';
+		$this->default_select_alias = 'gsh';
 
 		return $qb;
 	}
@@ -90,9 +91,9 @@ class GSEventsRequestBuilder extends CoreRequestBuilder {
 	 *
 	 * @return IQueryBuilder
 	 */
-	protected function getGSEventsDeleteSql() {
+	protected function getGSSharesDeleteSql() {
 		$qb = $this->dbConnection->getQueryBuilder();
-		$qb->delete(self::TABLE_GSEVENTS);
+		$qb->delete(self::TABLE_GSSHARES);
 
 		return $qb;
 	}
@@ -101,15 +102,13 @@ class GSEventsRequestBuilder extends CoreRequestBuilder {
 	/**
 	 * @param array $data
 	 *
-	 * @return GSWrapper
-	 * @throws JsonException
-	 * @throws ModelException
+	 * @return GSShare
 	 */
-	protected function parseGSEventsSelectSql($data): GSWrapper {
-		$wrapper = new GSWrapper();
-		$wrapper->import($data);
+	protected function parseGSSharesSelectSql($data): GSShare {
+		$share = new GSShare();
+		$share->importFromDatabase($data);
 
-		return $wrapper;
+		return $share;
 	}
 
 }

@@ -31,6 +31,7 @@ class CoreRequestBuilder {
 	const TABLE_LINKS = 'circles_links';
 	const TABLE_TOKENS = 'circles_tokens';
 	const TABLE_GSEVENTS = 'circles_gsevents';
+	const TABLE_GSSHARES = 'circles_gsshares';
 
 	const NC_TABLE_GROUP_USER = 'group_user';
 
@@ -195,6 +196,17 @@ class CoreRequestBuilder {
 	 */
 	protected function limitToShareId(IQueryBuilder &$qb, int $shareId) {
 		$this->limitToDBField($qb, 'share_id', $shareId);
+	}
+
+
+	/**
+	 * Limit the request to the Circle by its Id.
+	 *
+	 * @param IQueryBuilder $qb
+	 * @param string $memberId
+	 */
+	protected function limitToMemberId(IQueryBuilder &$qb, string $memberId) {
+		$this->limitToDBField($qb, 'member_id', $memberId);
 	}
 
 

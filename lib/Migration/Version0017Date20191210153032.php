@@ -71,46 +71,105 @@ class Version0017Date20191210153032 extends SimpleMigrationStep {
 			$table->setPrimaryKey(['circle_id', 'user_id', 'user_type', 'instance']);
 		}
 
-		$table = $schema->createTable('circles_gsevents');
-		$table->addColumn(
-			'token', 'string', [
-					   'notnull' => false,
-					   'length'  => 63,
-				   ]
-		);
-		$table->addColumn(
-			'event', 'text', [
-					   'notnull' => false
-				   ]
-		);
-		$table->addColumn(
-			'instance', 'string', [
-						  'length'  => 255,
-						  'notnull' => false
-					  ]
-		);
-		$table->addColumn(
-			'severity', 'integer', [
-						  'length'  => 3,
-						  'notnull' => false
-					  ]
-		);
-		$table->addColumn(
-			'status', 'integer', [
-						'length'  => 3,
-						'notnull' => false
+		if (!$schema->hasTable('circles_gsevents')) {
+			$table = $schema->createTable('circles_gsevents');
+			$table->addColumn(
+				'token', 'string', [
+						   'notnull' => false,
+						   'length'  => 63,
+					   ]
+			);
+			$table->addColumn(
+				'event', 'text', [
+						   'notnull' => false
+					   ]
+			);
+			$table->addColumn(
+				'instance', 'string', [
+							  'length'  => 255,
+							  'notnull' => false
+						  ]
+			);
+			$table->addColumn(
+				'severity', 'integer', [
+							  'length'  => 3,
+							  'notnull' => false
+						  ]
+			);
+			$table->addColumn(
+				'status', 'integer', [
+							'length'  => 3,
+							'notnull' => false
+						]
+			);
+			$table->addColumn(
+				'creation', 'bigint', [
+							  'length'  => 14,
+							  'notnull' => false
+						  ]
+			);
+			$table->addUniqueIndex(['token', 'instance']);
+		}
+
+		if (!$schema->hasTable('circles_gsshares')) {
+			$table = $schema->createTable('circles_gsshares');
+			$table->addColumn(
+				'id', 'integer', [
+						'notnull' => false,
+						'length'  => 11,
+						'autoincrement' => true,
+						'unsigned' => true
 					]
-		);
-		$table->addColumn(
-			'creation', 'bigint', [
-						  'length'  => 14,
-						  'notnull' => false
-					  ]
-		);
-		$table->addUniqueIndex(['token', 'instance']);
+			);
+			$table->addColumn(
+				'circle_unique_id', 'string', [
+									  'length'  => 15,
+									  'notnull' => false
+								  ]
+			);
+			$table->addColumn(
+				'owner', 'string', [
+						   'length'  => 15,
+						   'notnull' => false
+					   ]
+			);
+			$table->addColumn(
+				'instance', 'string', [
+							  'length'  => 255,
+							  'notnull' => false
+						  ]
+			);
+			$table->addColumn(
+				'token', 'string', [
+						   'notnull' => false,
+						   'length'  => 63
+					   ]
+			);
+			$table->addColumn(
+				'parent', 'integer', [
+							'notnull' => false,
+							'length'  => 11,
+						]
+			);
+			$table->addColumn(
+				'mountpoint', 'text', [
+								'notnull' => false
+							]
+			);
+			$table->addColumn(
+				'mountpoint_hash', 'string', [
+									 'length'  => 64,
+									 'notnull' => false
+								 ]
+			);
+			$table->setPrimaryKey(['id']);
+			$table->addUniqueIndex(['circle_unique_id', 'mountpoint_hash']);
+		}
+
 
 		return $schema;
 	}
+
 
 	/**
 	 * @param IOutput $output

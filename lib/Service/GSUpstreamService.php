@@ -134,7 +134,7 @@ class GSUpstreamService {
 
 				$this->globalScaleService->asyncBroadcast($event);
 			} else {
-				$gs->verify($event);
+				$gs->verify($event); // needed ? as we check event on the 'master' of the circle
 				$this->confirmEvent($event);
 				$gs->manage($event);
 			}
@@ -254,6 +254,9 @@ class GSUpstreamService {
 
 
 	/**
+	 * We check that the event can be managed/checked locally or if the owner of the circle belongs to
+	 * an other instance of Nextcloud
+	 *
 	 * @param GSEvent $event
 	 *asyncBroadcast
 	 *

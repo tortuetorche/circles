@@ -34,7 +34,7 @@ use OCA\Circles\Model\GlobalScale\GSWrapper;
 
 
 /**
- * Class TokensRequest
+ * Class GSEventsRequest
  *
  * @package OCA\Circles\Db
  */

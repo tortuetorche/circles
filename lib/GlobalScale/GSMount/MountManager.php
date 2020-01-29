@@ -1,14 +1,14 @@
-<?php
+<?php declare(strict_types=1);
+
+
 /**
  * Circles - Bring cloud-users closer together.
  *
  * This file is licensed under the Affero General Public License version 3 or
  * later. See the COPYING file.
  *
- * @author Maxence Lange <maxence@pontapreta.net>
- * @author Vinicius Cubas Brand <vinicius@eita.org.br>
- *
- * @copyright 2017
+ * @author Maxence Lange <maxence@artificial-owl.com>
+ * @copyright 2020
  * @license GNU AGPL version 3 or any later version
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,18 +27,14 @@
  */
 
 
-
-use OCA\Circles\AppInfo\Application;
-
-
-require_once __DIR__ . '/autoload.php';
+namespace OCA\Circles\GlobalScale\GSMount;
 
 
-/** @var Application $app */
-$app = \OC::$server->query(Application::class);
+class MountManager {
 
-$app->registerNavigation();
-$app->registerFilesNavigation();
-$app->registerFilesPlugin();
+	public function __construct() {
+	}
 
+
+}
 

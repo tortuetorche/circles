@@ -28,6 +28,7 @@ Users won't be able to find this Circle using Nextcloud search engine.
 	<author>Maxence Lange</author>
 	<types>
 		<filesystem/>
+		<dav/>
 	</types>
 
 	<documentation>
@@ -49,10 +50,6 @@ Users won't be able to find this Circle using Nextcloud search engine.
 		<job>OCA\Circles\Cron\ContactsExistingShares</job>
 		<job>OCA\Circles\Cron\GlobalSync</job>
 	</background-jobs>
-
-	<types>
-		<dav/>
-	</types>
 
 	<repair-steps>
 		<post-migration>

@@ -31,6 +31,7 @@ namespace OCA\Circles\GlobalScale;
 
 
 use OCA\Circles\Db\CirclesRequest;
+use OCA\Circles\Db\GSSharesRequest;
 use OCA\Circles\Db\MembersRequest;
 use OCA\Circles\Db\SharesRequest;
 use OCA\Circles\Db\TokensRequest;
@@ -46,6 +47,8 @@ use OCA\Circles\Service\ConfigService;
 use OCA\Circles\Service\EventsService;
 use OCA\Circles\Service\MembersService;
 use OCA\Circles\Service\MiscService;
+use OCP\Files\IRootFolder;
+use OCP\IUserManager;
 
 
 /**
@@ -56,17 +59,26 @@ use OCA\Circles\Service\MiscService;
 abstract class AGlobalScaleEvent {
 
 
+	/** @var IRootFolder */
+	protected $rootFolder;
+
+	/** @var IUserManager */
+	protected $userManager;
+
 	/** @var SharesRequest */
-	private $sharesRequest;
+	protected $sharesRequest;
 
 	/** @var TokensRequest */
-	private $tokensRequest;
+	protected $tokensRequest;
 
 	/** @var CirclesRequest */
 	protected $circlesRequest;
 
 	/** @var MembersRequest */
 	protected $membersRequest;
+
+	/** @var GSSharesRequest */
+	protected $gsSharesRequest;
 
 	/** @var CirclesService */
 	protected $circlesService;
@@ -87,10 +99,13 @@ abstract class AGlobalScaleEvent {
 	/**
 	 * AGlobalScaleEvent constructor.
 	 *
+	 * @param IRootFolder $rootFolder
+	 * @param IUserManager $userManager
 	 * @param SharesRequest $sharesRequest
 	 * @param TokensRequest $tokensRequest
 	 * @param CirclesRequest $circlesRequest
 	 * @param MembersRequest $membersRequest
+	 * @param GSSharesRequest $gsSharesRequest
 	 * @param CirclesService $circlesService
 	 * @param MembersService $membersService
 	 * @param EventsService $eventsService
@@ -98,20 +113,26 @@ abstract class AGlobalScaleEvent {
 	 * @param MiscService $miscService
 	 */
 	public function __construct(
+		IRootFolder $rootFolder,
+		IUserManager $userManager,
 		SharesRequest $sharesRequest,
 		TokensRequest $tokensRequest,
 		CirclesRequest $circlesRequest,
 		MembersRequest $membersRequest,
+		GSSharesRequest $gsSharesRequest,
 		CirclesService $circlesService,
 		MembersService $membersService,
 		EventsService $eventsService,
 		ConfigService $configService,
 		MiscService $miscService
 	) {
+		$this->rootFolder = $rootFolder;
+		$this->userManager = $userManager;
 		$this->sharesRequest = $sharesRequest;
 		$this->tokensRequest = $tokensRequest;
 		$this->circlesRequest = $circlesRequest;
 		$this->membersRequest = $membersRequest;
+		$this->gsSharesRequest = $gsSharesRequest;
 		$this->circlesService = $circlesService;
 		$this->membersService = $membersService;
 		$this->eventsService = $eventsService;

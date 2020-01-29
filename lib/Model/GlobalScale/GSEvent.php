@@ -65,6 +65,8 @@ class GSEvent implements JsonSerializable {
 	const MEMBER_UPDATE = 'GlobalScale\MemberUpdate';
 	const MEMBER_REMOVE = 'GlobalScale\MemberRemove';
 
+	const FILE_SHARE = 'GlobalScale\FileShare';
+
 
 	use TArrayTools;
 

@@ -31,6 +31,8 @@ namespace OCA\Circles\AppInfo;
 
 use OC;
 use OCA\Circles\Api\v1\Circles;
+use OCA\Circles\Exceptions\GSStatusException;
+use OCA\Circles\GlobalScale\GSMount\MountProvider;
 use OCA\Circles\Service\ConfigService;
 use OCA\Circles\Service\DavService;
 use OCA\Files\App as FilesApp;
@@ -52,19 +54,43 @@ class Application extends App {
 
 	const CLIENT_TIMEOUT = 3;
 
+
+	/** @var ConfigService */
+	private $configService;
+
 	/** @var IAppContainer */
 	private $container;
 
 	/**
 	 * @param array $params
+	 *
+	 * @throws GSStatusException
+	 * @throws QueryException
 	 */
 	public function __construct(array $params = array()) {
 		parent::__construct(self::APP_NAME, $params);
 
 		$this->container = $this->getContainer();
 
+		$this->configService = OC::$server->query(ConfigService::class);
+
+		$this->registerMountProvider();
 		$this->registerHooks();
 		$this->registerDavHooks();
+	}
+
+
+	/**
+	 * @throws GSStatusException
+	 * @throws QueryException
+	 */
+	public function registerMountProvider() {
+		if (!$this->configService->getGSStatus(ConfigService::GS_ENABLED)) {
+			return;
+		}
+
+		$mountProviderCollection = \OC::$server->getMountProviderCollection();
+		$mountProviderCollection->registerProvider($this->container->query(MountProvider::class));
 	}
 
 
@@ -85,14 +111,7 @@ class Application extends App {
 	 * Register Navigation elements
 	 */
 	public function registerNavigation() {
-		/** @var ConfigService $configService */
-		try {
-			$configService = OC::$server->query(ConfigService::class);
-		} catch (QueryException $e) {
-			return;
-		}
-
-		if (!$configService->stillFrontEnd()) {
+		if (!$this->configService->stillFrontEnd()) {
 			return;
 		}
 

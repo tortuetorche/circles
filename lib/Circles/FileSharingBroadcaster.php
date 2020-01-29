@@ -34,7 +34,6 @@ use OC\Share20\Share;
 use OCA\Circles\AppInfo\Application;
 use OCA\Circles\Db\SharesRequest;
 use OCA\Circles\Db\TokensRequest;
-use OCA\Circles\Exceptions\TokenDoesNotExistException;
 use OCA\Circles\IBroadcaster;
 use OCA\Circles\Model\Circle;
 use OCA\Circles\Model\Member;
@@ -193,6 +192,7 @@ class FileSharingBroadcaster implements IBroadcaster {
 	/**
 	 * {@inheritdoc}
 	 * @throws IllegalIDChangeException
+	 * @throws Exception
 	 */
 	public function createShareToMember(SharingFrame $frame, Member $member) {
 		if (!$frame->is0Circle()) {
@@ -206,9 +206,8 @@ class FileSharingBroadcaster implements IBroadcaster {
 
 		$share = $this->generateShare($payload['share']);
 		if ($member->getType() === Member::TYPE_MAIL || $member->getType() === Member::TYPE_CONTACT) {
+			$circle = $frame->getCircle();
 			try {
-				$circle = $frame->getCircle();
-
 				// federated shared in contact
 				$clouds = $this->getCloudsFromContact($member->getUserId());
 				if ($this->federatedEnabled && !empty($clouds)) {
