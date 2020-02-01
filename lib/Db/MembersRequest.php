@@ -313,7 +313,7 @@ class MembersRequest extends MembersRequestBuilder {
 			$member = $this->forceGetMember($circleUniqueId, $name, $type, $instance);
 		} catch (MemberDoesNotExistException $e) {
 			$member = new Member($name, $type, $circleUniqueId);
-			$member->setInstance(($instance));
+			$member->setInstance($instance);
 		}
 
 //		if ($member->alreadyExistOrJoining()) {

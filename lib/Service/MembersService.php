@@ -191,6 +191,7 @@ class MembersService {
 //		$this->addMemberBasedOnItsType($circle, $member);
 
 		$event = new GSevent(GSEvent::MEMBER_ADD);
+		$event->setSeverity(GSEvent::SEVERITY_HIGH);
 		$event->setCircle($circle);
 		$event->setMember($member);
 		$this->gsUpstreamService->newEvent($event);
@@ -518,7 +519,6 @@ class MembersService {
 		}
 
 	}
-
 
 
 	/**

@@ -373,7 +373,6 @@ class CirclesService {
 			);
 
 			$event = new GSevent(GSEvent::MEMBER_JOIN);
-			$event->setSeverity(GSEvent::SEVERITY_HIGH);
 			$event->setCircle($circle);
 			$event->setMember($member);
 			$this->gsUpstreamService->newEvent($event);

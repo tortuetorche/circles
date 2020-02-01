@@ -30,6 +30,8 @@ namespace OCA\Circles\Db;
 
 use daita\MySmallPhpTools\Traits\TStringTools;
 use OCA\Circles\Model\GlobalScale\GSShare;
+use OCA\Circles\Model\Member;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 
 
 /**
@@ -68,6 +70,9 @@ class GSSharesRequest extends GSSharesRequestBuilder {
 	public function getForUser(string $userId): array {
 		$qb = $this->getGSSharesSelectSql();
 
+		$this->joinMembership($qb, $userId);
+
+
 		$shares = [];
 		$cursor = $qb->execute();
 		while ($data = $cursor->fetch()) {
@@ -76,6 +81,26 @@ class GSSharesRequest extends GSSharesRequestBuilder {
 		$cursor->closeCursor();
 
 		return $shares;
+	}
+
+
+	/**
+	 * @param IQueryBuilder $qb
+	 * @param string $userId
+	 */
+	private function joinMembership(IQueryBuilder $qb, string $userId) {
+		$qb->from(CoreRequestBuilder::TABLE_MEMBERS, 'm');
+
+		$expr = $qb->expr();
+		$andX = $expr->andX();
+
+		$andX->add($expr->eq('m.user_id', $qb->createNamedParameter($userId)));
+		$andX->add($expr->eq('m.instance', $qb->createNamedParameter('')));
+		$andX->add($expr->gt('m.level', $qb->createNamedParameter(0)));
+		$andX->add($expr->eq('m.user_type', $qb->createNamedParameter(Member::TYPE_USER)));
+		$andX->add($expr->eq('m.circle_id', 'gsh.circle_unique_id'));
+
+		$qb->andWhere($andX);
 	}
 
 }
