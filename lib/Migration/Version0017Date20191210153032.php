@@ -58,19 +58,7 @@ class Version0017Date20191210153032 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
-
-		$table = $schema->getTable('circles_members');
-		if (!$table->hasColumn('instance')) {
-			$table->addColumn(
-				'instance', 'string', [
-							  'notnull' => false,
-							  'length'  => 255,
-						  ]
-			);
-			$table->dropPrimaryKey();
-			$table->setPrimaryKey(['circle_id', 'user_id', 'user_type', 'instance']);
-		}
-
+		
 		if (!$schema->hasTable('circles_gsevents')) {
 			$table = $schema->createTable('circles_gsevents');
 			$table->addColumn(
