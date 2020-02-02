@@ -142,6 +142,7 @@ class GlobalSync extends AGlobalScaleEvent {
 			} catch (MemberDoesNotExistException $e) {
 				$this->miscService->log('removing deprecated member :' . json_encode($knownItem), 2);
 				$this->membersRequest->removeMember($knownItem);
+				$this->gsSharesRequest->removeGSSharesFromMember($knownItem);
 			}
 		}
 	}

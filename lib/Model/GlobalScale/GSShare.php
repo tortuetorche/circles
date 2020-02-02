@@ -270,7 +270,7 @@ class GSShare implements JsonSerializable {
 	 */
 	public function importFromDatabase(array $data): self {
 		$this->setId($this->getInt('id', $data));
-		$this->setCircleId($this->get('circle_unique_id', $data));
+		$this->setCircleId($this->get('circle_id', $data));
 		$this->setOwner($this->get('owner', $data));
 		$this->setInstance($this->get('instance', $data));
 		$this->setToken($this->get('token', $data));

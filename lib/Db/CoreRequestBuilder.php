@@ -156,6 +156,17 @@ class CoreRequestBuilder {
 
 
 	/**
+	 * Limit the request to the owner
+	 *
+	 * @param IQueryBuilder $qb
+	 * @param $owner
+	 */
+	protected function limitToOwner(IQueryBuilder &$qb, $owner) {
+		$this->limitToDBField($qb, 'owner', $owner);
+	}
+
+
+	/**
 	 * Limit the request to the Type entry.
 	 *
 	 * @param IQueryBuilder $qb

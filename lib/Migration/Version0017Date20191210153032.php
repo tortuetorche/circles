@@ -122,7 +122,7 @@ class Version0017Date20191210153032 extends SimpleMigrationStep {
 					]
 			);
 			$table->addColumn(
-				'circle_unique_id', 'string', [
+				'circle_id', 'string', [
 									  'length'  => 15,
 									  'notnull' => false
 								  ]
@@ -163,9 +163,8 @@ class Version0017Date20191210153032 extends SimpleMigrationStep {
 								 ]
 			);
 			$table->setPrimaryKey(['id']);
-			$table->addUniqueIndex(['circle_unique_id', 'mountpoint_hash']);
+			$table->addUniqueIndex(['circle_id', 'mountpoint_hash']);
 		}
-
 
 		return $schema;
 	}

@@ -75,7 +75,7 @@ class GSSharesRequestBuilder extends CoreRequestBuilder {
 
 		/** @noinspection PhpMethodParametersCountMismatchInspection */
 		$qb->select(
-			'gsh.id', 'gsh.circle_unique_id', 'gsh.owner', 'gsh.instance', 'gsh.token', 'gsh.parent',
+			'gsh.id', 'gsh.circle_id', 'gsh.owner', 'gsh.instance', 'gsh.token', 'gsh.parent',
 			'gsh.mountpoint', 'gsh.mountpoint_hash'
 		)
 		   ->from(self::TABLE_GSSHARES, 'gsh');

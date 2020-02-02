@@ -51,7 +51,7 @@ class GSSharesRequest extends GSSharesRequestBuilder {
 	public function create(GSShare $gsShare): void {
 		$hash = $this->token();
 		$qb = $this->getGSSharesInsertSql();
-		$qb->setValue('circle_unique_id', $qb->createNamedParameter($gsShare->getCircleId()))
+		$qb->setValue('circle_id', $qb->createNamedParameter($gsShare->getCircleId()))
 		   ->setValue('owner', $qb->createNamedParameter($gsShare->getOwner()))
 		   ->setValue('instance', $qb->createNamedParameter($gsShare->getInstance()))
 		   ->setValue('token', $qb->createNamedParameter($gsShare->getToken()))
@@ -85,6 +85,19 @@ class GSSharesRequest extends GSSharesRequestBuilder {
 
 
 	/**
+	 * @param Member $member
+	 */
+	public function removeGSSharesFromMember(Member $member) {
+		$qb = $this->getGSSharesDeleteSql();
+		$this->limitToCircleId($qb, $member->getCircleId());
+		$this->limitToInstance($qb, $member->getInstance());
+		$this->limitToOwner($qb, $member->getUserId());
+
+		$qb->execute();
+	}
+
+
+	/**
 	 * @param IQueryBuilder $qb
 	 * @param string $userId
 	 */
@@ -98,7 +111,7 @@ class GSSharesRequest extends GSSharesRequestBuilder {
 		$andX->add($expr->eq('m.instance', $qb->createNamedParameter('')));
 		$andX->add($expr->gt('m.level', $qb->createNamedParameter(0)));
 		$andX->add($expr->eq('m.user_type', $qb->createNamedParameter(Member::TYPE_USER)));
-		$andX->add($expr->eq('m.circle_id', 'gsh.circle_unique_id'));
+		$andX->add($expr->eq('m.circle_id', 'gsh.circle_id'));
 
 		$qb->andWhere($andX);
 	}

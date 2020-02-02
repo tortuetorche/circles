@@ -79,8 +79,8 @@ class MemberLeave extends AGlobalScaleEvent {
 		$this->eventsService->onMemberLeaving($circle, $member);
 
 		$this->membersRequest->removeMember($member);
-		// TODO: remove shares to this member
-//		$this->sharesRequest->removeSharesFromMember($member);
+		$this->sharesRequest->removeSharesFromMember($member);
+		$this->gsSharesRequest->removeGSSharesFromMember($member);
 	}
 
 
