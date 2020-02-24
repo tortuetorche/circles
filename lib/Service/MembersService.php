@@ -44,7 +44,9 @@ use OCA\Circles\Exceptions\MemberAlreadyExistsException;
 use OCA\Circles\Exceptions\MemberDoesNotExistException;
 use OCA\Circles\Model\Circle;
 use OCA\Circles\Model\Member;
+use OCP\IGroup;
 use OCP\IL10N;
+use OCP\IUser;
 use OCP\IUserManager;
 
 
@@ -172,6 +174,7 @@ class MembersService {
 	 */
 	private function addSingleMember(Circle $circle, $ident, $type) {
 		$this->verifyIdentBasedOnItsType($ident, $type);
+		$this->verifyIdentWithGroupBackend($circle, $ident, $type);
 
 		$member = $this->membersRequest->getFreshNewMember($circle->getUniqueId(), $ident, $type);
 		$member->hasToBeInviteAble();
@@ -280,6 +283,33 @@ class MembersService {
 
 
 	/**
+	 * Verify the availability of an ident when Group Backend is enabled
+	 *
+	 * @param Circle $circle
+	 * @param string $ident
+	 * @param int $type
+	 *
+	 * @throws Exception
+	 */
+	private function verifyIdentWithGroupBackend(Circle $circle, $ident, $type) {
+		if ($this->configService->isGroupsBackend() &&
+			in_array($type, [Member::TYPE_MAIL, Member::TYPE_CONTACT], true) &&
+			in_array($circle->getType(), [Circle::CIRCLES_CLOSED, Circle::CIRCLES_PUBLIC], true)
+		) {
+			if ($type === Member::TYPE_MAIL) {
+				$errorMessage = 'You cannot add a mail address as member of your Circle';
+			}
+			if ($type === Member::TYPE_CONTACT) {
+				$errorMessage = 'You cannot add a contact as member of your Circle';
+			}
+			throw new EmailAccountInvalidFormatException(
+				$this->l10n->t($errorMessage)
+			);
+		}
+	}
+
+
+	/**
 	 * Verify the availability of an ident, based on its type.
 	 *
 	 * @param string $ident
@@ -382,8 +412,18 @@ class MembersService {
 	 */
 	private function addGroupMembers(Circle $circle, $groupId) {
 
-		$group = OC::$server->getGroupManager()
-							->get($groupId);
+		$groupManager = OC::$server->getGroupManager();
+		$group = $groupManager->get($groupId);
+
+		$user = OC::$server->getUserSession()->getUser();
+
+		if (!$this->configService->isAddingAnyGroupMembersAllowed() &&
+			$group instanceof IGroup && $user instanceof IUser &&
+			!$group->inGroup($user) && !$groupManager->isAdmin($user->getUID())
+		) {
+			$group = null;
+		}
+
 		if ($group === null) {
 			throw new GroupDoesNotExistException($this->l10n->t('This group does not exist'));
 		}
@@ -616,4 +656,3 @@ class MembersService {
 	}
 
 }
-

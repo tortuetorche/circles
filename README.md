@@ -39,9 +39,37 @@ Non-members won't be able to find your secret circle using the search bar.
 
 In non-SSL environments (like on development setups) it is necessary to set two config flags for Circles:
 
-`./occ config:app:set circles --value 1 allow_non_ssl_links` 
+`./occ config:app:set circles --value 1 allow_non_ssl_links`
 
 `./occ config:app:set circles --value 1 local_is_non_ssl`
+
+## Allow mirroring circles as groups
+
+See: https://github.com/nextcloud/circles/issues/363
+
+```bash
+apk add --no-cache --virtual .maintenance-deps sudo
+
+sudo -u www-data php occ maintenance:mode --on
+
+sudo -u www-data php occ config:app:set circles --value 1 group_backend # Mirroring circles as groups
+sudo -u www-data php occ config:app:set circles --value 0 allow_listed_circles # Hide circles in shared list, useful with the 'group_backend' option
+
+# sudo -u www-data php occ config:app:set circles --value " " group_backend_name_prefix # Remove default group name prefix
+# sudo -u www-data php occ config:app:set circles --value " 🌀" group_backend_name_suffix # Add group name suffix
+
+sudo -u www-data php occ config:app:set circles --value 12 allow_circles # Only show public and closed circles
+sudo -u www-data php occ config:app:set circles --value 1 skip_invitation_to_closed_circles
+
+sudo -u www-data php occ config:app:set circles --value 0 allow_files_filtered_by_circles # Disable files list filtering by circles in the Files app
+sudo -u www-data php occ config:app:set circles --value 0 allow_adding_any_group_members # Adding group members only for groups where the current user is a member or a global administrator
+
+sudo -u www-data php occ maintenance:mode --off
+
+apk del .maintenance-deps
+
+
+```
 
 # Credits
 
