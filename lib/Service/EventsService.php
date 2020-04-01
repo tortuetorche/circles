@@ -37,8 +37,8 @@ use OCP\Activity\IEvent;
 use OCP\Activity\IManager;
 use OCP\IUser;
 use OCP\IUserManager;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use OCP\EventDispatcher\IEventDispatcher;
+use OCP\EventDispatcher\GenericEvent;
 
 class EventsService {
 
@@ -52,7 +52,7 @@ class EventsService {
 	/** @var IUserManager */
 	private $userManager;
 
-	/** @var EventDispatcher */
+	/** @var IEventDispatcher */
 	private $eventDispatcher;
 
 	/** @var CirclesRequest */
@@ -74,7 +74,7 @@ class EventsService {
 	 * @param string $userId
 	 * @param IManager $activityManager
 	 * @param IUserManager $userManager
-	 * @param EventDispatcher $eventDispatcher
+	 * @param IEventDispatcher $eventDispatcher
 	 * @param CirclesRequest $circlesRequest
 	 * @param MembersRequest $membersRequest
 	 * @param ConfigService $configService
@@ -82,7 +82,7 @@ class EventsService {
 	 */
 	public function __construct(
 		$userId, IManager $activityManager, IUserManager $userManager,
-		EventDispatcher $eventDispatcher, CirclesRequest $circlesRequest,
+		IEventDispatcher $eventDispatcher, CirclesRequest $circlesRequest,
 		MembersRequest $membersRequest,
 		ConfigService $configService, MiscService $miscService
 	) {
