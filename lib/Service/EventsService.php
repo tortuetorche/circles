@@ -107,21 +107,22 @@ class EventsService {
 	 * @param Circle $circle
 	 */
 	public function onCircleCreation(Circle $circle) {
-		if ($this->configService->getAppValue(ConfigService::CIRCLES_ACTIVITY_ON_CREATION) !== '1'
-			|| ($circle->getType() !== Circle::CIRCLES_PUBLIC
-				&& $circle->getType() !== Circle::CIRCLES_CLOSED)) {
+		if ($circle->getType() !== Circle::CIRCLES_PUBLIC
+				&& $circle->getType() !== Circle::CIRCLES_CLOSED) {
 			return;
 		}
 
-		$event = $this->generateEvent('circles_as_member');
-		$event->setSubject('circle_create', ['circle' => json_encode($circle)]);
+		if ($this->configService->getAppValue(ConfigService::CIRCLES_ACTIVITY_ON_CREATION) === '1') {
+			$event = $this->generateEvent('circles_as_member');
+			$event->setSubject('circle_create', ['circle' => json_encode($circle)]);
 
-		$this->userManager->callForSeenUsers(
-			function($user) use ($event) {
-				/** @var IUser $user */
-				$this->publishEvent($event, [$user]);
-			}
-		);
+			$this->userManager->callForSeenUsers(
+				function($user) use ($event) {
+					/** @var IUser $user */
+					$this->publishEvent($event, [$user]);
+				}
+			);
+		}
 
 		$this->dispatch('\OCA\Circles::onCircleCreation',  ['circle' => $circle]);
 	}
@@ -149,6 +150,7 @@ class EventsService {
 				$circle->getUniqueId(), Member::LEVEL_MEMBER, true
 			)
 		);
+
 		$this->dispatch('\OCA\Circles::onCircleDestruction',  ['circle' => $circle]);
 	}
 
@@ -193,6 +195,7 @@ class EventsService {
 					  )
 				  )
 		);
+
 		$this->dispatch('\OCA\Circles::onMemberNew',  ['circle' => $circle, 'member' => $member]);
 	}
 
@@ -314,6 +317,7 @@ class EventsService {
 					  )
 				  )
 		);
+
 		$this->dispatch('\OCA\Circles::onMemberLeaving',  ['circle' => $circle, 'member' => $member]);
 	}
 
@@ -702,7 +706,7 @@ class EventsService {
 		$event->setSubject(
 			$subject, ['circle' => $circle->getJson(false, true), 'link' => $link->getJson()]
 		);
-		
+
 		$this->publishEvent(
 			$event, $this->membersRequest->forceGetMembers(
 			$link->getCircleId(), Member::LEVEL_MODERATOR, true
@@ -717,9 +721,10 @@ class EventsService {
 	 * Called when the circle's settings are changed
 	 *
 	 * @param Circle $circle
+	 * @param array  $oldSettings
 	 */
-	public function onSettingsChange(Circle $circle) {
-		$this->dispatch('\OCA\Circles::onSettingsChange',  ['circle' => $circle]);
+	public function onSettingsChange(Circle $circle, array $oldSettings = []) {
+		$this->dispatch('\OCA\Circles::onSettingsChange',  ['circle' => $circle, 'oldSettings' => $oldSettings]);
 	}
 
 
