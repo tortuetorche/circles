@@ -130,6 +130,16 @@ class Application extends App {
 	}
 
 	public function registerFilesPlugin() {
+		try {
+			/** @var ConfigService $configService */
+			$configService = $this->server->query(ConfigService::class);
+			if (!$configService->isFilesFilteredCirclesAllowed()) {
+				return;
+			}
+		} catch (QueryException $e) {
+			return;
+		}
+
 		$this->dispatcher->addListener(
 			'OCA\Files::loadAdditionalScripts',
 			function() {
@@ -148,6 +158,16 @@ class Application extends App {
 	 *
 	 */
 	public function registerFilesNavigation() {
+		try {
+			/** @var ConfigService $configService */
+			$configService = $this->server->query(ConfigService::class);
+			if (!$configService->isFilesFilteredCirclesAllowed()) {
+				return;
+			}
+		} catch (QueryException $e) {
+			return;
+		}
+
 		$appManager = FilesApp::getNavigationManager();
 		$appManager->add(
 			function() {
